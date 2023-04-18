@@ -56,7 +56,7 @@ class Movie(object):
         for p in producers:
             if p['name'] in self.buffer['producers'].keys():
                 for v in self.buffer['producers'][p['name']]:
-                    if p['win'] == v['winner']:
+                    if p['win'] == v['winner'] and p['year'] != v['year']:
                         max_year = v['year'] if p['year'] < v['year'] else p['year']
                         min_year = v['year'] if p['year'] > v['year'] else p['year']
                         interval = (max_year - min_year)
@@ -77,6 +77,7 @@ class Movie(object):
         producer_oredered = {}
         final = {'min': [], 'max': []}
         result = self.get_producers_and_years()
+        max_interval = min_interval = None
         producer_interval = self.create_interval(result)
 
         for v in producer_interval:
@@ -86,9 +87,23 @@ class Movie(object):
             if v['producer'] not in producer_oredered.keys():
                 producer_oredered.setdefault(v['producer'], []).append(v)
 
+        for k, v in producer_oredered.items():
 
-        for _, v in producer_oredered.items():
-            if len(v) > 1:
-                final['min'] += v[:1]
-                final['max'] += v[-1:]
+            for val in v:
+                if not max_interval:
+                    max_interval = val['interval']
+                if max_interval < val['interval']:
+                     max_interval = val['interval']
+
+                if not min_interval:
+                    min_interval = val['interval']
+                if min_interval > val['interval']:
+                     min_interval = val['interval']
+
+        for p, val in producer_oredered.items():
+            for v in val:
+                if v['interval'] == min_interval:
+                    final['min'].append(v)
+                if v['interval'] == max_interval:
+                    final['max'].append(v)
         return final
